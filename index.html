@@ -73,6 +73,7 @@
 </footer>
 
 <script>
+  /* ── PETALS ── */
   const colors = ['#e8a0a0','#f5d0d0','#c9a84c','#e8cc80','#fdf6ee'];
   const container = document.getElementById('petals');
   for (let i = 0; i < 22; i++) {
@@ -96,17 +97,76 @@
   }, { threshold: 0.15 });
   document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 
+  /* ── STORAGE CONFIG ── */
+  // Uses JSONBin.io as a free cloud database — videos sync across all devices
+  const BIN_URL = 'https://api.jsonbin.io/v3/b';
+  const MASTER_KEY = '$2a$10$PLACEHOLDER'; // <-- Replace with your JSONBin Master Key
+  const BIN_ID_KEY = 'yamski_bin_id';
+
+  let videos = [];
+  let binId = localStorage.getItem(BIN_ID_KEY) || null;
+
+  async function loadVideos() {
+    setLoading(true);
+    try {
+      if (!binId) {
+        // First time — create a new bin
+        const res = await fetch(BIN_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Master-Key': MASTER_KEY,
+            'X-Bin-Name': 'yamski-birthday-videos',
+            'X-Bin-Private': 'false'
+          },
+          body: JSON.stringify({ videos: [] })
+        });
+        const data = await res.json();
+        binId = data.metadata.id;
+        localStorage.setItem(BIN_ID_KEY, binId);
+        videos = [];
+      } else {
+        const res = await fetch(`${BIN_URL}/${binId}/latest`, {
+          headers: { 'X-Master-Key': MASTER_KEY }
+        });
+        const data = await res.json();
+        videos = data.record.videos || [];
+      }
+    } catch (e) {
+      console.error('Load error:', e);
+      videos = [];
+    }
+    setLoading(false);
+    render();
+  }
+
+  async function saveVideos() {
+    try {
+      await fetch(`${BIN_URL}/${binId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Master-Key': MASTER_KEY
+        },
+        body: JSON.stringify({ videos })
+      });
+    } catch (e) {
+      console.error('Save error:', e);
+    }
+  }
+
+  function setLoading(on) {
+    const grid = document.getElementById('videoGrid');
+    if (on) {
+      grid.innerHTML = '<div class="empty-state" style="color:rgba(255,255,255,.3)">Loading messages... ✦</div>';
+    }
+  }
+
   /* ── VIDEO LOGIC ── */
-  let videos = JSON.parse(localStorage.getItem('yamski_vids') || '[]');
-
-  function save() { localStorage.setItem('yamski_vids', JSON.stringify(videos)); }
-
   function embedUrl(raw) {
     raw = raw.trim();
-    // YouTube
     let m = raw.match(/(?:youtube\.com\/(?:watch\?v=|shorts\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/);
     if (m) return `https://www.youtube.com/embed/${m[1]}?rel=0`;
-    // Google Drive
     m = raw.match(/drive\.google\.com\/file\/d\/([^/]+)/);
     if (m) return `https://drive.google.com/file/d/${m[1]}/preview`;
     m = raw.match(/drive\.google\.com\/open\?id=([^&]+)/);
@@ -114,7 +174,7 @@
     return null;
   }
 
-  function addVideo() {
+  async function addVideo() {
     const url  = document.getElementById('videoUrl').value.trim();
     const name = document.getElementById('senderName').value.trim() || 'A special friend';
     if (!url) return;
@@ -122,24 +182,22 @@
     if (!embed) { alert('Please paste a valid YouTube or Google Drive video link.'); return; }
     const id = Date.now();
     videos.push({ id, embed, name });
-    save();
     render();
     document.getElementById('videoUrl').value   = '';
     document.getElementById('senderName').value = '';
+    await saveVideos();
   }
 
-  function removeVideo(id) {
+  async function removeVideo(id) {
     videos = videos.filter(v => v.id !== id);
-    save();
     render();
+    await saveVideos();
   }
 
   function render() {
-    const grid  = document.getElementById('videoGrid');
-    const empty = document.getElementById('emptyState');
+    const grid = document.getElementById('videoGrid');
     if (videos.length === 0) {
-      grid.innerHTML = '';
-      grid.appendChild(empty);
+      grid.innerHTML = '<div class="empty-state" id="emptyState">No messages yet — add the first one above ✦</div>';
       return;
     }
     grid.innerHTML = videos.map(v => `
@@ -154,14 +212,15 @@
     `).join('');
   }
 
-  render();
-
   /* enter key on inputs */
   ['videoUrl','senderName'].forEach(id => {
     document.getElementById(id).addEventListener('keydown', e => {
       if (e.key === 'Enter') addVideo();
     });
   });
+
+  // Load on start
+  loadVideos();
 </script>
 </body>
 </html>
