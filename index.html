@@ -97,36 +97,18 @@
 
   const BIN_URL = 'https://api.jsonbin.io/v3/b';
   const MASTER_KEY = '$2a$10$MJO6vDCL1cgQ6w9C4/.3D.ajJlIso2BPxZ5kJg.4c862Di0ZnXee.';
-  const BIN_ID_KEY = 'Nifemi_bin_id';
+  const binId = '69b06b3e1687bc351c7aa40d';
 
   let videos = [];
-  let binId = localStorage.getItem(BIN_ID_KEY) || null;
 
   async function loadVideos() {
     setLoading(true);
     try {
-      if (!binId) {
-        const res = await fetch(BIN_URL, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-Master-Key': MASTER_KEY,
-            'X-Bin-Name': 'yamski-birthday-videos',
-            'X-Bin-Private': 'false'
-          },
-          body: JSON.stringify({ videos: [] })
-        });
-        const data = await res.json();
-        binId = data.metadata.id;
-        localStorage.setItem(BIN_ID_KEY, binId);
-        videos = [];
-      } else {
-        const res = await fetch(`${BIN_URL}/${binId}/latest`, {
-          headers: { 'X-Master-Key': MASTER_KEY }
-        });
-        const data = await res.json();
-        videos = data.record.videos || [];
-      }
+      const res = await fetch(`${BIN_URL}/${binId}/latest`, {
+        headers: { 'X-Master-Key': MASTER_KEY }
+      });
+      const data = await res.json();
+      videos = data.record.videos || [];
     } catch (e) {
       videos = [];
     }
