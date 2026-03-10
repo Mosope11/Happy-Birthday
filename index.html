@@ -73,7 +73,6 @@
 </footer>
 
 <script>
-  /* ── PETALS ── */
   const colors = ['#e8a0a0','#f5d0d0','#c9a84c','#e8cc80','#fdf6ee'];
   const container = document.getElementById('petals');
   for (let i = 0; i < 22; i++) {
@@ -91,17 +90,14 @@
     container.appendChild(p);
   }
 
-  /* ── SCROLL REVEAL ── */
   const observer = new IntersectionObserver(entries => {
     entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
   }, { threshold: 0.15 });
   document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 
-  /* ── STORAGE CONFIG ── */
-  // Uses JSONBin.io as a free cloud database — videos sync across all devices
   const BIN_URL = 'https://api.jsonbin.io/v3/b';
-  const MASTER_KEY = '$2a$10$PLACEHOLDER'; // <-- Replace with your JSONBin Master Key
-  const BIN_ID_KEY = 'yamski_bin_id';
+  const MASTER_KEY = '$2a$10$MJO6vDCL1cgQ6w9C4/.3D.ajJlIso2BPxZ5kJg.4c862Di0ZnXee.';
+  const BIN_ID_KEY = 'Nifemi_bin_id';
 
   let videos = [];
   let binId = localStorage.getItem(BIN_ID_KEY) || null;
@@ -110,7 +106,6 @@
     setLoading(true);
     try {
       if (!binId) {
-        // First time — create a new bin
         const res = await fetch(BIN_URL, {
           method: 'POST',
           headers: {
@@ -133,7 +128,6 @@
         videos = data.record.videos || [];
       }
     } catch (e) {
-      console.error('Load error:', e);
       videos = [];
     }
     setLoading(false);
@@ -150,9 +144,7 @@
         },
         body: JSON.stringify({ videos })
       });
-    } catch (e) {
-      console.error('Save error:', e);
-    }
+    } catch (e) {}
   }
 
   function setLoading(on) {
@@ -162,7 +154,6 @@
     }
   }
 
-  /* ── VIDEO LOGIC ── */
   function embedUrl(raw) {
     raw = raw.trim();
     let m = raw.match(/(?:youtube\.com\/(?:watch\?v=|shorts\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/);
@@ -212,14 +203,12 @@
     `).join('');
   }
 
-  /* enter key on inputs */
   ['videoUrl','senderName'].forEach(id => {
     document.getElementById(id).addEventListener('keydown', e => {
       if (e.key === 'Enter') addVideo();
     });
   });
 
-  // Load on start
   loadVideos();
 </script>
 </body>
