@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Happy 21st, Yami 🌹</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Cinzel:wght@400;600&family=Jost:wght@200;300;400&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="petals"></div>
+
+<div id="hero">
+  <p class="ornament">✦ Celebrating &nbsp;&nbsp; Twenty One Years ✦</p>
+  <h1 class="hero-name">Nifemi</h1>
+  <div class="divider"></div>
+  <div class="scroll-hint">scroll <span></span></div>
+</div>
+
+<section>
+  <div id="message" class="reveal">
+    <div>
+      <p class="section-label">A word for you</p>
+      <h2 class="section-title">Happy Birthday Yami🌹</h2>
+      <p class="msg-text">
+        Twenty-one years of <strong>you</strong> — your laughter, your warmth,
+        your effortless way of making every room feel like home.<br/><br/>
+        You have always been more than a sister. You are the kind of person
+        people write songs about, the kind the universe conspires in favour of.<br/><br/>
+        <strong>This is your year.</strong> All yours.
+      </p>
+    </div>
+    <div class="vline"></div>
+    <div class="msg-right">
+      <div>
+        <div class="age-badge">21</div>
+        <p class="age-label">years of grace &amp; glory</p>
+      </div>
+      <div class="rose-deco"><span>✿</span></div>
+    </div>
+  </div>
+</section>
+
+<section id="videos">
+  <p class="section-label reveal">From your Friends and Family</p>
+  <h2 class="section-title reveal">Birthday Messages</h2>
+  <p class="video-intro reveal">
+    Everyone has something to say about You.
+  </p>
+
+  <div class="upload-area reveal">
+    <p>🎬 &nbsp; Add a video message (paste a YouTube or Google Drive share link)</p>
+    <div class="url-row">
+      <input type="text" id="videoUrl" placeholder="https://youtube.com/watch?v=… or drive.google.com/…" />
+    </div>
+    <div class="name-row">
+      <input type="text" id="senderName" placeholder="Sender's name (e.g. Tolu, Aisha…)" />
+      <button class="btn" onclick="addVideo()">Add Message</button>
+    </div>
+  </div>
+
+  <div class="video-grid" id="videoGrid">
+    <div class="empty-state" id="emptyState">
+      No messages yet — add the first one above ✦
+    </div>
+  </div>
+</section>
+
+<footer>
+  Made with love for <em>Nifemi</em> &nbsp;✦&nbsp;Happy 21st Birthday &nbsp;✦&nbsp; <em>Shine on, always</em><br><br>
+  <p6>Ps: I know I'm the best brother ever</p6>
+</footer>
+
+<script>
+  const colors = ['#e8a0a0','#f5d0d0','#c9a84c','#e8cc80','#fdf6ee'];
+  const container = document.getElementById('petals');
+  for (let i = 0; i < 22; i++) {
+    const p = document.createElement('div');
+    p.className = 'petal';
+    p.style.cssText = `
+      left: ${Math.random()*100}%;
+      width: ${4+Math.random()*6}px;
+      height: ${7+Math.random()*9}px;
+      background: ${colors[Math.floor(Math.random()*colors.length)]};
+      animation-duration: ${6+Math.random()*10}s;
+      animation-delay: ${Math.random()*8}s;
+      border-radius: ${Math.random()>.5 ? '50% 50% 50% 0':'50%'};
+    `;
+    container.appendChild(p);
+  }
+
+  /* ── SCROLL REVEAL ── */
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+  /* ── VIDEO LOGIC ── */
+  let videos = JSON.parse(localStorage.getItem('yamski_vids') || '[]');
+
+  function save() { localStorage.setItem('yamski_vids', JSON.stringify(videos)); }
+
+  function embedUrl(raw) {
+    raw = raw.trim();
+    // YouTube
+    let m = raw.match(/(?:youtube\.com\/(?:watch\?v=|shorts\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/);
+    if (m) return `https://www.youtube.com/embed/${m[1]}?rel=0`;
+    // Google Drive
+    m = raw.match(/drive\.google\.com\/file\/d\/([^/]+)/);
+    if (m) return `https://drive.google.com/file/d/${m[1]}/preview`;
+    m = raw.match(/drive\.google\.com\/open\?id=([^&]+)/);
+    if (m) return `https://drive.google.com/file/d/${m[1]}/preview`;
+    return null;
+  }
+
+  function addVideo() {
+    const url  = document.getElementById('videoUrl').value.trim();
+    const name = document.getElementById('senderName').value.trim() || 'A special friend';
+    if (!url) return;
+    const embed = embedUrl(url);
+    if (!embed) { alert('Please paste a valid YouTube or Google Drive video link.'); return; }
+    const id = Date.now();
+    videos.push({ id, embed, name });
+    save();
+    render();
+    document.getElementById('videoUrl').value   = '';
+    document.getElementById('senderName').value = '';
+  }
+
+  function removeVideo(id) {
+    videos = videos.filter(v => v.id !== id);
+    save();
+    render();
+  }
+
+  function render() {
+    const grid  = document.getElementById('videoGrid');
+    const empty = document.getElementById('emptyState');
+    if (videos.length === 0) {
+      grid.innerHTML = '';
+      grid.appendChild(empty);
+      return;
+    }
+    grid.innerHTML = videos.map(v => `
+      <div class="video-card">
+        <iframe src="${v.embed}" allowfullscreen allow="autoplay"></iframe>
+        <div class="video-card-footer">
+          <span class="heart">✦</span>
+          <span>${v.name}</span>
+          <button class="remove-btn" onclick="removeVideo(${v.id})" title="Remove">✕</button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  render();
+
+  /* enter key on inputs */
+  ['videoUrl','senderName'].forEach(id => {
+    document.getElementById(id).addEventListener('keydown', e => {
+      if (e.key === 'Enter') addVideo();
+    });
+  });
+</script>
+</body>
+</html>
