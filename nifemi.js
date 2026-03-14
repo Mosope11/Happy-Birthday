@@ -1,4 +1,4 @@
-const colors = ['#e8a0a0','#f5d0d0','#c9a84c','#e8cc80','#fdf6ee'];
+  const colors = ['#e8a0a0','#f5d0d0','#c9a84c','#e8cc80','#fdf6ee'];
   const container = document.getElementById('petals');
   for (let i = 0; i < 22; i++) {
     const p = document.createElement('div');
