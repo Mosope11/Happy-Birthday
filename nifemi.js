@@ -110,10 +110,10 @@
     `).join('');
   }
 
-  ['videoUrl','senderName'].forEach(id => {
+ /* ['videoUrl','senderName'].forEach(id => {
     document.getElementById(id).addEventListener('keydown', e => {
       if (e.key === 'Enter') addVideo();
     });
-  });
+  });*/
 
   loadVideos();
